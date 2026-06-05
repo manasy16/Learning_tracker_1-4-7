@@ -1,0 +1,5 @@
+pywebview>=4.4.1
+schedule>=1.2.0
+pystray>=0.19.5
+Pillow>=10.0.0
+platformdirs>=4.0.0

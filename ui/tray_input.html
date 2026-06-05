@@ -1,0 +1,288 @@
+<!-- Writing tray HTML/CSS/JS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log Topic</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:        #0e0e0e;
+    --surface:   #161616;
+    --border:    rgba(245, 158, 11, 0.18);
+    --accent:    #f59e0b;
+    --accent-dim:rgba(245, 158, 11, 0.08);
+    --text:      #efefef;
+    --muted:     #888;
+    --faint:     #333;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 22px 26px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .eyebrow {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .close-btn {
+    background: none; border: none;
+    color: var(--faint); font-size: 16px;
+    cursor: pointer; padding: 2px 7px;
+    border-radius: 5px;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1; margin-top: -2px;
+  }
+  .close-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+  /* ── Input row ── */
+  .input-row {
+    display: flex; gap: 8px; align-items: stretch;
+  }
+
+  .topic-input {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 9px 13px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-user-select: text; user-select: text;
+  }
+  .topic-input::placeholder { color: #3a3a3a; }
+  .topic-input:focus {
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.07);
+  }
+
+  .save-btn {
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .save-btn:hover  { background: #fbbf24; }
+  .save-btn:active { transform: scale(0.96); }
+
+  /* ── Saved topics list ── */
+  .topics-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 0;
+  }
+
+  .topics-list::-webkit-scrollbar { width: 3px; }
+  .topics-list::-webkit-scrollbar-track { background: transparent; }
+  .topics-list::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 3px; }
+
+  .topic-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 10px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #c9c9c9;
+    animation: chipIn 0.18s ease;
+  }
+
+  @keyframes chipIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0);    }
+  }
+
+  .chip-icon { color: var(--accent); font-size: 11px; flex-shrink: 0; }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .hint { font-size: 10.5px; color: #3a3a3a; }
+
+  .count-pill {
+    font-size: 10.5px;
+    color: var(--accent);
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.15);
+    padding: 2px 9px;
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div>
+      <div class="eyebrow">1 · 4 · 7 Spaced Repetition</div>
+      <div class="title">What did you learn today?</div>
+    </div>
+    <button class="close-btn" onclick="closeWindow()" title="Close (Esc)">✕</button>
+  </div>
+
+  <div class="input-row">
+    <input
+      class="topic-input"
+      id="topicInput"
+      placeholder="e.g. Binary Search Trees, Activation Records…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button class="save-btn" onclick="saveTopic()">Save →</button>
+  </div>
+
+  <div class="topics-list" id="topicsList"></div>
+
+  <div class="footer">
+    <span class="hint">Enter to save · Esc to close</span>
+    <span class="count-pill" id="countPill">0 topics today</span>
+  </div>
+
+</div>
+
+<script>
+  function pluralise(n) {
+    return n === 1 ? `${n} topic today` : `${n} topics today`;
+  }
+
+  function setCount(n) {
+    document.getElementById('countPill').textContent = pluralise(n);
+  }
+
+  async function init() {
+    try {
+      const n = await window.pywebview.api.get_today_count();
+      setCount(n);
+    } catch(e) { setCount(0); }
+    document.getElementById('topicInput').focus();
+  }
+
+  async function saveTopic() {
+    const input = document.getElementById('topicInput');
+    const topic = input.value.trim();
+    if (!topic) { input.focus(); return; }
+
+    try {
+      const res = await window.pywebview.api.save_topic(topic);
+      if (res.status === 'ok') {
+        addChip(topic);
+        setCount(res.count);
+        input.value = '';
+        input.focus();
+      } else {
+        alert(res.message || 'Could not save topic. Please check the app log.');
+      }
+    } catch(e) {
+      console.error(e);
+      alert('Could not save topic. Please check the app log.');
+    }
+  }
+
+  function addChip(topic) {
+    const list = document.getElementById('topicsList');
+    const chip = document.createElement('div');
+    chip.className = 'topic-chip';
+    chip.innerHTML = `<span class="chip-icon">✓</span><span>${escHtml(topic)}</span>`;
+    list.appendChild(chip);
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function closeWindow() {
+    window.pywebview.api.close();
+  }
+
+  /* Called by main.py via evaluate_js every time the window is shown */
+  function resetForm() {
+    document.getElementById('topicInput').value = '';
+    document.getElementById('topicsList').innerHTML = '';
+    init();
+  }
+
+  document.getElementById('topicInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  saveTopic();
+    if (e.key === 'Escape') closeWindow();
+  });
+
+  window.addEventListener('pywebviewready', init);
+</script>
+</body>
+</html>

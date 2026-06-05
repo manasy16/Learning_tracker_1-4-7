@@ -1,0 +1,221 @@
+<!-- Settings HTML/CSS/JS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Settings</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:      #0e0e0e;
+    --surface: #161616;
+    --border:  rgba(255,255,255,0.06);
+    --accent:  #f59e0b;
+    --text:    #efefef;
+    --muted:   #666;
+    --faint:   rgba(255,255,255,0.03);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  .card {
+    width: 100%; height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 22px 26px 20px;
+    display: flex; flex-direction: column; gap: 16px;
+    animation: fadeUp 0.2s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .title { font-size: 15.5px; font-weight: 600; }
+
+  .close-btn {
+    background: none; border: none; color: #3a3a3a;
+    font-size: 15px; cursor: pointer; padding: 2px 7px;
+    border-radius: 4px; transition: color 0.15s, background 0.15s;
+  }
+  .close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  /* ── Settings items ── */
+  .settings-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+  .setting-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 13px;
+    background: var(--faint);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+  }
+
+  .setting-label { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+  .setting-sub   { font-size: 10.5px; color: var(--muted); }
+
+  /* Time input */
+  .time-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 7px;
+    padding: 7px 11px;
+    color: var(--text);
+    font-size: 13px; font-family: inherit;
+    outline: none; width: 95px; text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-user-select: text; user-select: text;
+  }
+  .time-input:focus {
+    border-color: rgba(245,158,11,0.45);
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.07);
+  }
+
+  /* Toggle switch */
+  .toggle-wrap {
+    position: relative; display: inline-block; width: 42px; height: 24px;
+  }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 24px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .slider::before {
+    content: ''; position: absolute;
+    width: 17px; height: 17px;
+    left: 3.5px; top: 3.5px;
+    background: #999; border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-wrap input:checked + .slider { background: rgba(245,158,11,0.3); }
+  .toggle-wrap input:checked + .slider::before {
+    transform: translateX(18px);
+    background: var(--accent);
+  }
+
+  /* ── Save button ── */
+  .save-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0a0a; border: none;
+    border-radius: 9px; padding: 10px;
+    font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .save-btn:hover  { background: #fbbf24; }
+  .save-btn:active { transform: scale(0.98); }
+
+  /* ── Feedback message ── */
+  .feedback {
+    text-align: center; font-size: 11.5px; color: #4ade80;
+    opacity: 0; transition: opacity 0.3s; height: 16px;
+  }
+  .feedback.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div class="title">⚙ Settings</div>
+    <button class="close-btn" onclick="closeWindow()">✕</button>
+  </div>
+
+  <div class="settings-list">
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Daily Prompt Time</div>
+        <div class="setting-sub">When to ask what you learned today</div>
+      </div>
+      <input type="time" class="time-input" id="promptTime" value="21:00" />
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Start with Windows</div>
+        <div class="setting-sub">Launch automatically on login</div>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="startupToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+  </div>
+
+  <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+  <div class="feedback" id="feedback">✓ Saved! Time change applies on next restart.</div>
+
+</div>
+
+<script>
+  function loadSettings(data) {
+    document.getElementById('promptTime').value = data.prompt_time || '21:00';
+    document.getElementById('startupToggle').checked = data.startup !== false;
+  }
+
+  async function saveSettings() {
+    const data = {
+      prompt_time: document.getElementById('promptTime').value,
+      startup:     document.getElementById('startupToggle').checked,
+    };
+    try {
+      const saved = await window.pywebview.api.save_settings(data);
+      if (saved.status !== 'ok') {
+        alert(saved.message || 'Could not save settings. Please check the app log.');
+        return;
+      }
+
+      const startup = await window.pywebview.api.set_startup(data.startup);
+      if (startup.status !== 'ok') {
+        alert(startup.message || 'Could not update startup setting. Please check the app log.');
+        return;
+      }
+
+      const fb = document.getElementById('feedback');
+      fb.classList.add('show');
+      setTimeout(() => fb.classList.remove('show'), 3000);
+    } catch(e) {
+      console.error(e);
+      alert('Could not save settings. Please check the app log.');
+    }
+  }
+
+  function closeWindow() {
+    window.pywebview.api.close();
+  }
+
+  /* Called by main.py via evaluate_js on each show */
+  async function refresh() {
+    try {
+      const data = await window.pywebview.api.get_settings();
+      loadSettings(data);
+    } catch(e) {
+      console.error(e);
+      alert('Could not load settings. Please check the app log.');
+    }
+  }
+
+  window.addEventListener('pywebviewready', refresh);
+</script>
+</body>
+</html>

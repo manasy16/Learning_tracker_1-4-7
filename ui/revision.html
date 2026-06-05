@@ -1,0 +1,319 @@
+<!-- Revision popup HTML/CSS/JS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Revision Due</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:       #0e0e0e;
+    --surface:  #161616;
+    --accent:   #6366f1;
+    --accent2:  #818cf8;
+    --border:   rgba(99, 102, 241, 0.22);
+    --text:     #efefef;
+    --muted:    #777;
+    --faint:    rgba(255,255,255,0.04);
+
+    --r1-bg:    rgba(34,  197, 94,  0.12);
+    --r1-text:  #4ade80;
+    --r1-b:     rgba(34,  197, 94,  0.2);
+
+    --r2-bg:    rgba(245, 158, 11,  0.12);
+    --r2-text:  #fbbf24;
+    --r2-b:     rgba(245, 158, 11,  0.2);
+
+    --r3-bg:    rgba(239, 68,  68,  0.12);
+    --r3-text:  #f87171;
+    --r3-b:     rgba(239, 68,  68,  0.2);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  .card {
+    width: 100%; height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 20px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: slideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0);    }
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+
+  .eyebrow {
+    font-size: 9px; text-transform: uppercase;
+    letter-spacing: 2.5px; color: var(--accent2);
+    font-weight: 500; margin-bottom: 4px;
+  }
+
+  .title { font-size: 15.5px; font-weight: 600; }
+
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  .close-btn {
+    background: none; border: none;
+    color: #3a3a3a; font-size: 15px;
+    cursor: pointer; padding: 2px 6px;
+    border-radius: 4px; transition: color 0.15s, background 0.15s;
+  }
+  .close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  .date-badge {
+    font-size: 10px; color: var(--muted);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 8px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: rgba(255,255,255,0.04); }
+
+  /* ── Topics list ── */
+  .topics-list {
+    flex: 1; overflow-y: auto; min-height: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+
+  .topics-list::-webkit-scrollbar { width: 3px; }
+  .topics-list::-webkit-scrollbar-track { background: transparent; }
+  .topics-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+  .empty-state {
+    display: flex; align-items: center; justify-content: center;
+    height: 80px; color: #444; font-size: 13px; gap: 8px;
+  }
+
+  .topic-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 9px 11px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    transition: background 0.2s, opacity 0.3s;
+    animation: rowIn 0.18s ease both;
+  }
+
+  .topic-row:nth-child(1) { animation-delay: 0.00s; }
+  .topic-row:nth-child(2) { animation-delay: 0.04s; }
+  .topic-row:nth-child(3) { animation-delay: 0.08s; }
+  .topic-row:nth-child(4) { animation-delay: 0.12s; }
+  .topic-row:nth-child(5) { animation-delay: 0.16s; }
+
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+
+  .topic-row.done {
+    opacity: 0.3;
+    background: transparent;
+  }
+
+  .topic-left {
+    display: flex; align-items: center; gap: 9px; flex: 1; overflow: hidden;
+  }
+
+  .rev-badge {
+    font-size: 9.5px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+  .rev-1 { background: var(--r1-bg); color: var(--r1-text); border: 1px solid var(--r1-b); }
+  .rev-2 { background: var(--r2-bg); color: var(--r2-text); border: 1px solid var(--r2-b); }
+  .rev-3 { background: var(--r3-bg); color: var(--r3-text); border: 1px solid var(--r3-b); }
+
+  .rev-label {
+    font-size: 9px; color: var(--muted);
+  }
+
+  .topic-info { overflow: hidden; }
+
+  .topic-name {
+    font-size: 12.5px; color: #d4d4d4;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .done-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #4a4a4a;
+    border-radius: 6px;
+    padding: 4px 11px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .done-btn:hover {
+    background: rgba(99,102,241,0.12);
+    border-color: var(--accent);
+    color: var(--accent2);
+  }
+  .done-btn:disabled { cursor: default; opacity: 0.4; }
+
+  /* ── Footer buttons ── */
+  .footer-btns { display: flex; gap: 7px; }
+
+  .btn-all {
+    flex: 1;
+    background: var(--accent);
+    color: white; border: none;
+    border-radius: 8px; padding: 9px;
+    font-size: 12px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-all:hover  { background: #4f46e5; }
+  .btn-all:active { transform: scale(0.97); }
+
+  .btn-later {
+    background: var(--faint);
+    color: #555; border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px; padding: 9px 14px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-later:hover { color: #999; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div>
+      <div class="eyebrow">Spaced Repetition</div>
+      <div class="title">🔁 Revision Due Today</div>
+    </div>
+    <div class="header-right">
+      <button class="close-btn" onclick="closeWindow()">✕</button>
+      <span class="date-badge" id="dateBadge"></span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="topics-list" id="topicsList">
+    <div class="empty-state">⏳ Loading…</div>
+  </div>
+
+  <div class="footer-btns">
+    <button class="btn-all" onclick="markAllDone()">✓ Mark All Done</button>
+    <button class="btn-later" onclick="closeWindow()">Later</button>
+  </div>
+
+</div>
+
+<script>
+  let topics = [];
+
+  const REV_LABELS = { 1: '1st', 2: '2nd', 3: '3rd' };
+
+  function setDate() {
+    const d = new Date();
+    const opts = { month: 'short', day: 'numeric' };
+    document.getElementById('dateBadge').textContent =
+      d.toLocaleDateString('en-IN', opts);
+  }
+
+  function loadTopics(data) {
+    topics = data;
+    render();
+  }
+
+  function render() {
+    const list = document.getElementById('topicsList');
+    if (!topics.length) {
+      list.innerHTML = '<div class="empty-state">✓ All caught up!</div>';
+      return;
+    }
+    list.innerHTML = topics.map((t, i) => `
+      <div class="topic-row" id="row-${i}">
+        <div class="topic-left">
+          <span class="rev-badge rev-${t.rev_num}">R${t.rev_num}</span>
+          <div class="topic-info">
+            <div class="topic-name" title="${escHtml(t.topic)}">${escHtml(t.topic)}</div>
+          </div>
+        </div>
+        <button class="done-btn" id="btn-${i}"
+                onclick="markDone(${i}, ${t.id}, ${t.rev_num})">Done ✓</button>
+      </div>
+    `).join('');
+  }
+
+  async function markDone(idx, id, revNum) {
+    const btn = document.getElementById(`btn-${idx}`);
+    if (btn && btn.disabled) return;
+    try {
+      const res = await window.pywebview.api.mark_done(id, revNum);
+      if (res.status !== 'ok') {
+        alert(res.message || 'Could not mark revision done. Please check the app log.');
+        return;
+      }
+      const row = document.getElementById(`row-${idx}`);
+      row.classList.add('done');
+      btn.disabled = true;
+      btn.textContent = '✓';
+    } catch(e) {
+      console.error(e);
+      alert('Could not mark revision done. Please check the app log.');
+    }
+  }
+
+  async function markAllDone() {
+    for (let i = 0; i < topics.length; i++) {
+      await markDone(i, topics[i].id, topics[i].rev_num);
+      await new Promise(r => setTimeout(r, 80)); // stagger for effect
+    }
+    setTimeout(closeWindow, 600);
+  }
+
+  function closeWindow() {
+    window.pywebview.api.close();
+  }
+
+  /* refresh() called by main.py via evaluate_js on each show */
+  async function refresh() {
+    try {
+      const data = await window.pywebview.api.get_due();
+      loadTopics(data);
+    } catch(e) {
+      console.error(e);
+      alert('Could not load revisions. Please check the app log.');
+    }
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.addEventListener('pywebviewready', () => {
+    setDate();
+    refresh();
+  });
+</script>
+</body>
+</html>
