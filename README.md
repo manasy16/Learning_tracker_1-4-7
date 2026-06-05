@@ -434,6 +434,4 @@ Some possible improvements:
 
 ---
 
-## License
 
-MIT
