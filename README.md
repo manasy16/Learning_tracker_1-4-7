@@ -242,7 +242,7 @@ learning_tracker/
 |   |-- settings.html    # Window to change settings
 |
 |-- assets/              # App assets
-|-- windows/             # Older/placeholder window files
+
 |-- data/                # Local development data folder
 ```
 
